@@ -26,6 +26,8 @@
     "@babel/preset-typescript": "^7.21.5",
     "@babel/traverse": "^7.23.2",
     "@babel/types": "^7.22.5",
+    "@hattip/adapter-node": "^0.0.35",
+    "@hattip/core": "^0.0.35",
     "@mdx-js/mdx": "^2.3.0",
     "@npmcli/package-json": "^4.0.1",
     "@remix-run/node": "2.2.0",
