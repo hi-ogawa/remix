@@ -37,6 +37,7 @@ import * as VirtualModule from "./vmod";
 import { removeExports } from "./remove-exports";
 import { transformLegacyCssImports } from "./legacy-css-imports";
 import { replaceImportSpecifier } from "./replace-import-specifier";
+import { DevRequestContext, devRequestContextStorage } from "./node/dev-context";
 
 const supportedRemixConfigKeys = [
   "appDirectory",
@@ -676,7 +677,11 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
                   criticalCss;
               }
 
-              next();
+              const devRequestContext: DevRequestContext = {
+                build,
+                criticalCss
+              }
+              devRequestContextStorage.run(devRequestContext, () => next());
             } catch (error) {
               next(error);
             }
@@ -690,7 +695,11 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
                 let locals = localsByRequest.get(req);
                 invariant(locals, "No Remix locals found for request");
 
-                let { build, criticalCss } = locals;
+                // let { build, criticalCss } = locals;
+
+                const devRequestContext = devRequestContextStorage.getStore();
+                invariant(devRequestContext);
+                let { build, criticalCss } = devRequestContext
 
                 let handle = createRequestHandler(build, {
                   mode: "development",
