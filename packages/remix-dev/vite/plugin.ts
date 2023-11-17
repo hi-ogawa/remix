@@ -140,15 +140,20 @@ const resolveBuildAssetPaths = (
   let chunks = resolveDependantChunks(viteManifest, entryChunk);
 
   return {
-    module: `${pluginConfig.publicPath}${entryChunk.file}`,
-    imports:
-      dedupe(chunks.flatMap((e) => e.imports ?? [])).map((imported) => {
-        return `${pluginConfig.publicPath}${viteManifest[imported].file}`;
-      }) ?? [],
-    css:
-      dedupe(chunks.flatMap((e) => e.css ?? [])).map((href) => {
-        return `${pluginConfig.publicPath}${href}`;
-      }) ?? [],
+    module: "/" + entryChunk.file,
+    imports: dedupe(chunks.flatMap((e) => e.imports ?? [])).map(
+      (imported) => "/" + viteManifest[imported].file
+    ),
+    css: dedupe(chunks.flatMap((e) => e.css ?? []).map(href => "/" + href)),
+    // module: `${pluginConfig.publicPath}${entryChunk.file}`,
+    // imports:
+    //   dedupe(chunks.flatMap((e) => e.imports ?? [])).map((imported) => {
+    //     return `${pluginConfig.publicPath}${viteManifest[imported].file}`;
+    //   }) ?? [],
+    // css:
+    //   dedupe(chunks.flatMap((e) => e.css ?? [])).map((href) => {
+    //     return `${pluginConfig.publicPath}${href}`;
+    //   }) ?? [],
   };
 };
 
@@ -237,6 +242,10 @@ const getViteMajorVersion = (): number => {
   let vitePkg = require("vite/package.json");
   return parseInt(vitePkg.version.split(".")[0]!);
 };
+
+// TODO: use "build/..." by default? or configurable remix options `outDirBase` or something?
+const serverOutDir = "dist/server";
+const clientOutDir = "dist/client";
 
 export type RemixVitePlugin = (
   options?: RemixVitePluginOptions
@@ -355,7 +364,8 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
     let pluginConfig = await resolvePluginConfig();
 
     let viteManifest = await loadViteManifest(
-      pluginConfig.assetsBuildDirectory
+      clientOutDir
+      // pluginConfig.assetsBuildDirectory
     );
 
     let entry: Manifest["entry"] = resolveBuildAssetPaths(
@@ -397,8 +407,14 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
       ...nonFingerprintedValues,
     };
 
+    // await writeFileSafe(
+    //   path.join(pluginConfig.assetsBuildDirectory, manifestFilename),
+    //   `window.__remixManifest=${JSON.stringify(manifest)};`
+    // );
+
+    // TODO: how to gurantee no conflict with vite assets?
     await writeFileSafe(
-      path.join(pluginConfig.assetsBuildDirectory, manifestFilename),
+      path.join(clientOutDir, pluginConfig.publicPath, manifestFilename),
       `window.__remixManifest=${JSON.stringify(manifest)};`
     );
 
@@ -516,13 +532,17 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
             ],
           },
           ...(viteCommand === "build" && {
-            base: pluginConfig.publicPath,
+            // base: pluginConfig.publicPath,
             build: {
               ...viteUserConfig.build,
               ...(!isSsrBuild
                 ? {
                     manifest: true,
-                    outDir: pluginConfig.assetsBuildDirectory,
+                    // outDir: pluginConfig.assetsBuildDirectory,
+                    outDir: clientOutDir,
+                    // strip off "/" at the start to treat it as relative directory
+                    assetsDir: pluginConfig.publicPath
+                      .replace(/^\//, ""),
                     rollupOptions: {
                       ...viteUserConfig.build?.rollupOptions,
                       preserveEntrySignatures: "exports-only",
@@ -537,7 +557,8 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
                 : {
                     ssrEmitAssets: true, // We move SSR-only assets to client assets and clean the rest
                     manifest: true, // We need the manifest to detect SSR-only assets
-                    outDir: path.dirname(pluginConfig.serverBuildPath),
+                    // outDir: path.dirname(pluginConfig.serverBuildPath),
+                    outDir: serverOutDir,
                     rollupOptions: {
                       ...viteUserConfig.build?.rollupOptions,
                       preserveEntrySignatures: "exports-only",
@@ -765,12 +786,14 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
             "Expected resolvedViteConfig to exist when writeBundle hook is called"
           );
 
-          let { assetsBuildDirectory, serverBuildPath, rootDirectory } =
+          let { assetsBuildDirectory, serverBuildPath, rootDirectory, publicPath } =
             cachedPluginConfig;
           let serverBuildDir = path.dirname(serverBuildPath);
 
-          let ssrViteManifest = await loadViteManifest(serverBuildDir);
-          let clientViteManifest = await loadViteManifest(assetsBuildDirectory);
+          let ssrViteManifest = await loadViteManifest(serverOutDir);
+          let clientViteManifest = await loadViteManifest(clientOutDir);
+          // let ssrViteManifest = await loadViteManifest(serverBuildDir);
+          // let clientViteManifest = await loadViteManifest(assetsBuildDirectory);
 
           let clientAssetPaths = new Set(
             Object.values(clientViteManifest).flatMap(
@@ -819,6 +842,13 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
           if (fse.existsSync(ssrAssetsDir)) {
             await fse.remove(ssrAssetsDir);
           }
+
+          //
+          // copy from vite `outDir` to remix build dir
+          //
+          await fse.copy(path.join(serverOutDir, "index.js"), serverBuildPath);
+          await fse.remove(assetsBuildDirectory);
+          await fse.copy(path.join(clientOutDir, publicPath), assetsBuildDirectory);
         },
       },
       async buildEnd() {
