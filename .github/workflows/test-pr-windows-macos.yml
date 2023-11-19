@@ -16,7 +16,7 @@ concurrency:
 jobs:
   unit-windows:
     name: "🧪 Unit Test"
-    if: github.repository == 'remix-run/remix'
+    # if: github.repository == 'remix-run/remix'
     uses: ./.github/workflows/shared-test-unit.yml
     with:
       os: "windows-latest"
@@ -24,7 +24,7 @@ jobs:
 
   integration-firefox:
     name: "👀 Integration Test"
-    if: github.repository == 'remix-run/remix'
+    # if: github.repository == 'remix-run/remix'
     uses: ./.github/workflows/shared-test-integration.yml
     with:
       os: "ubuntu-latest"
@@ -33,7 +33,7 @@ jobs:
 
   integration-msedge:
     name: "👀 Integration Test"
-    if: github.repository == 'remix-run/remix'
+    # if: github.repository == 'remix-run/remix'
     uses: ./.github/workflows/shared-test-integration.yml
     with:
       os: "windows-latest"
@@ -42,7 +42,7 @@ jobs:
 
   integration-webkit:
     name: "👀 Integration Test"
-    if: github.repository == 'remix-run/remix'
+    # if: github.repository == 'remix-run/remix'
     uses: ./.github/workflows/shared-test-integration.yml
     with:
       os: "macos-latest"
