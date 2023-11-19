@@ -84,6 +84,9 @@ const resolveFileUrl = (
   { rootDirectory }: Pick<ResolvedRemixVitePluginConfig, "rootDirectory">,
   filePath: string
 ) => {
+  // test @fs url with absolute path
+  return `/@fs` + normalizePath(filePath);
+
   let relativePath = path.relative(rootDirectory, filePath);
   let isWithinRoot =
     !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
