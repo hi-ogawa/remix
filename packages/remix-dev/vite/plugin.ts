@@ -85,7 +85,7 @@ const resolveFileUrl = (
   filePath: string
 ) => {
   // test @fs url with absolute path
-  return `/@fs` + normalizePath(filePath);
+  return path.posix.join("/@fs", normalizePath(filePath));
 
   let relativePath = path.relative(rootDirectory, filePath);
   let isWithinRoot =
