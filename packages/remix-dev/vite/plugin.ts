@@ -233,11 +233,6 @@ const showUnstableWarning = () => {
   );
 };
 
-const getViteMajorVersion = (): number => {
-  let vitePkg = require("vite/package.json");
-  return parseInt(vitePkg.version.split(".")[0]!);
-};
-
 export type RemixVitePlugin = (
   options?: RemixVitePluginOptions
 ) => Vite.Plugin[];
@@ -246,7 +241,7 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
   let viteUserConfig: Vite.UserConfig;
   let resolvedViteConfig: Vite.ResolvedConfig | undefined;
 
-  let isViteV4 = getViteMajorVersion() === 4;
+  let isViteV4: boolean;
 
   let cssModulesManifest: Record<string, string> = {};
   let ssrBuildContext:
@@ -455,6 +450,7 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
       config: async (_viteUserConfig, viteConfigEnv) => {
         // Load Vite's ESM build up-front as soon as we're in an async context
         vite = await import("vite");
+        isViteV4 = vite.version.startsWith("4.");
 
         viteUserConfig = _viteUserConfig;
         viteCommand = viteConfigEnv.command;
