@@ -74,6 +74,7 @@ let browserManifestId = VirtualModule.id("browser-manifest");
 let remixReactProxyId = VirtualModule.id("remix-react-proxy");
 let hmrRuntimeId = VirtualModule.id("hmr-runtime");
 let injectHmrRuntimeId = VirtualModule.id("inject-hmr-runtime");
+let viteManifestPath = path.join(".vite", "manifest.json"); // fixed location regardless of vite version
 
 const normalizePath = (p: string) => {
   let unixPath = p.replace(/[\\/]+/g, "/").replace(/^([a-zA-Z]+:|\.\/)/, "");
@@ -341,11 +342,8 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
   };
 
   let loadViteManifest = async (directory: string) => {
-    let manifestPath = isViteV4
-      ? "manifest.json"
-      : path.join(".vite", "manifest.json");
     let manifestContents = await fse.readFile(
-      path.resolve(directory, manifestPath),
+      path.resolve(directory, viteManifestPath),
       "utf-8"
     );
     return JSON.parse(manifestContents) as Vite.Manifest;
@@ -528,7 +526,7 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
               copyPublicDir: false,
               ...(!isSsrBuild
                 ? {
-                    manifest: true,
+                    manifest: viteManifestPath,
                     outDir: pluginConfig.assetsBuildDirectory,
                     rollupOptions: {
                       ...viteUserConfig.build?.rollupOptions,
@@ -548,7 +546,7 @@ export const remixVitePlugin: RemixVitePlugin = (options = {}) => {
                     // regardless of "ssrEmitAssets" option, so we also need to
                     // keep these JS files have to be kept as-is.
                     ssrEmitAssets: true,
-                    manifest: true, // We need the manifest to detect SSR-only assets
+                    manifest: viteManifestPath, // We need the manifest to detect SSR-only assets
                     outDir: path.dirname(pluginConfig.serverBuildPath),
                     rollupOptions: {
                       ...viteUserConfig.build?.rollupOptions,
