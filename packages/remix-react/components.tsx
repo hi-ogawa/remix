@@ -427,12 +427,31 @@ function PrefetchPageLinksImpl({
   );
 }
 
+// cf.
+// https://github.com/rakkasjs/rakkasjs/blame/main/packages/rakkasjs/src/features/head/lib.tsx/#L61-L62
+// https://github.com/staylor/react-helmet-async/blob/main/src/index.tsx
+function TagWrapper(props: React.PropsWithChildren) {
+  React.useEffect(() => {
+    return () => {
+    }
+  });
+  if (props.children) {
+    // on server
+    // 1. prob child
+    // 2. get key
+    // 3. mutate context
+    React.Children
+    props.children
+  }
+  return null;
+}
+
 /**
  * Renders HTML tags related to metadata for the current route.
  *
  * @see https://remix.run/components/meta
  */
-export function Meta() {
+export function Meta(props: { TagWrapper?: React.FC }) {
   let { routeModules } = useRemixContext();
   let {
     errors,
@@ -508,6 +527,8 @@ export function Meta() {
     leafMeta = meta;
   }
 
+  const TagWrapperr = props.TagWrapper ?? React.Fragment;
+
   return (
     <>
       {meta.flat().map((metaProps) => {
@@ -524,11 +545,19 @@ export function Meta() {
             return null;
           }
           let Comp = tagName;
-          return <Comp key={JSON.stringify(rest)} {...rest} />;
+          return (
+            <TagWrapperr key={JSON.stringify(rest)}>
+              <Comp {...rest} />
+            </TagWrapperr>
+          );
         }
 
         if ("title" in metaProps) {
-          return <title key="title">{String(metaProps.title)}</title>;
+          return (
+            <TagWrapperr key="title">
+              <title>{String(metaProps.title)}</title>
+            </TagWrapperr>
+          );
         }
 
         if ("charset" in metaProps) {
@@ -538,7 +567,9 @@ export function Meta() {
 
         if ("charSet" in metaProps && metaProps.charSet != null) {
           return typeof metaProps.charSet === "string" ? (
-            <meta key="charSet" charSet={metaProps.charSet} />
+            <TagWrapperr key="charSet">
+              <meta charSet={metaProps.charSet} />
+            </TagWrapperr>
           ) : null;
         }
 
@@ -546,17 +577,23 @@ export function Meta() {
           try {
             let json = JSON.stringify(metaProps["script:ld+json"]);
             return (
-              <script
-                key={`script:ld+json:${json}`}
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: json }}
-              />
+              <TagWrapperr key={`script:ld+json:${json}`}>
+                <script
+                  type="application/ld+json"
+                  dangerouslySetInnerHTML={{ __html: json }}
+                />
+              </TagWrapperr>
             );
           } catch (err) {
             return null;
           }
         }
-        return <meta key={JSON.stringify(metaProps)} {...metaProps} />;
+
+        return (
+          <TagWrapperr key={JSON.stringify(metaProps)}>
+            <meta {...metaProps} />
+          </TagWrapperr>
+        );
       })}
     </>
   );
