@@ -1383,10 +1383,7 @@ export const remixVitePlugin: RemixVitePlugin = (remixUserConfig = {}) => {
           }
         }
 
-        return {
-          code: removeExports(code, SERVER_ONLY_ROUTE_EXPORTS),
-          map: null,
-        };
+        return removeExports(code, SERVER_ONLY_ROUTE_EXPORTS);
       },
     },
     {

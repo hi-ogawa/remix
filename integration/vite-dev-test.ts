@@ -436,6 +436,30 @@ test.describe("Vite dev", () => {
     );
   });
 
+  test.only("correct sourcemap after removing server exports", async ({ page }) => {
+    let pageErrors: unknown[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+
+    await page.goto(
+      `http://localhost:${devPort}`
+    );
+    await page.pause();
+    // await expect(page.locator("main")).toContainText(
+    //   "Error: crash-server-render"
+    // );
+    // await expect(page.locator("main")).toContainText(
+    //   "error-stacktrace.tsx:16:11"
+    // );
+
+    // await page.goto(
+    //   `http://localhost:${devPort}/error-stacktrace?crash-loader`
+    // );
+    // await expect(page.locator("main")).toContainText("Error: crash-loader");
+    // await expect(page.locator("main")).toContainText(
+    //   "error-stacktrace.tsx:7:11"
+    // );
+  });
+
   test("handle known route exports with HMR", async ({ page }) => {
     let pageErrors: unknown[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));

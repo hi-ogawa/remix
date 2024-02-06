@@ -1,4 +1,8 @@
-import { removeExports } from "./remove-exports";
+import { removeExports as removeExportsWithSourcemap } from "./remove-exports";
+
+function removeExports(source: string, exportsToRemove: string[]) {
+  return removeExportsWithSourcemap(source, exportsToRemove).code;
+}
 
 describe("removeExports", () => {
   test("arrow function", () => {
@@ -34,7 +38,7 @@ describe("removeExports", () => {
 
       export const serverExport_1 = () => serverUtil()
       export const serverExport_2 = () => serverUtil()
-      
+
       export const clientExport_1 = () => clientUtil()
       export const clientExport_2 = () => clientUtil()
     `,

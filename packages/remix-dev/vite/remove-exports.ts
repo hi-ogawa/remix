@@ -63,7 +63,7 @@ function isIdentifierReferenced(
 
 export const removeExports = (source: string, exportsToRemove: string[]) => {
   let document = parse(source, { sourceType: "module" });
-  let generateCode = () => generate(document).code;
+  let generateCode = () => generate(document, { sourceMaps: true });
 
   let referencedIdentifiers = new Set<NodePath<BabelTypes.Identifier>>();
   let removedExports = new Set<string>();
