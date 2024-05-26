@@ -137,6 +137,9 @@
     "node": ">=18.0.0"
   },
   "pnpm": {
+    "overrides": {
+      "vite": "file:./vite-6.0.0-alpha.17.tgz"
+    },
     "patchedDependencies": {
       "@changesets/assemble-release-plan@5.2.2": "patches/@changesets__assemble-release-plan@5.2.2.patch"
     }
