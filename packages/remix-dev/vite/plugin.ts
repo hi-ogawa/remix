@@ -1751,7 +1751,7 @@ export const remixVitePlugin: RemixVitePlugin = (remixUserConfig = {}) => {
             invalidateVirtualModules(server);
           }
         } else {
-          // detect server only module change for Vite 6
+          // for HDR, detect server only module change for Vite 6
           hmrEventData.serverOnly = modules.every(
             (m) => !m.invalidationState && m.ssrInvalidationState
           );
