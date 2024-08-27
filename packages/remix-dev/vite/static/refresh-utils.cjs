@@ -175,7 +175,9 @@ import.meta.hot.on("remix:hmr", async ({ route, serverOnly }) => {
     routeUpdates.set(route.id, route);
   }
   if (serverOnly) {
-    __remixRouter.revalidate()
+    enqueueUpdate()
+    // revalidate()
+    // __remixRouter.revalidate()
   }
 });
 
