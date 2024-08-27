@@ -168,11 +168,14 @@ function channel() {
   return { promise, resolve, reject };
 }
 
-import.meta.hot.on("remix:hmr", async ({ route }) => {
+import.meta.hot.on("remix:hmr", async ({ route, serverOnly }) => {
   window.__remixClearCriticalCss();
 
   if (route) {
     routeUpdates.set(route.id, route);
+  }
+  if (serverOnly) {
+    revalidate();
   }
 });
 

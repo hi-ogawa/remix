@@ -1715,8 +1715,11 @@ export const remixVitePlugin: RemixVitePlugin = (remixUserConfig = {}) => {
         let route = getRoute(ctx.remixConfig, file);
 
         type ManifestRoute = RemixManifest["routes"][string];
-        type HmrEventData = { route: ManifestRoute | null };
-        let hmrEventData: HmrEventData = { route: null };
+        type HmrEventData = {
+          route: ManifestRoute | null;
+          serverOnly: boolean;
+        };
+        let hmrEventData: HmrEventData = { route: null, serverOnly: false };
 
         if (route) {
           // invalidate manifest on route exports change
@@ -1747,6 +1750,11 @@ export const remixVitePlugin: RemixVitePlugin = (remixUserConfig = {}) => {
           ) {
             invalidateVirtualModules(server);
           }
+        } else {
+          // detect server only module change for Vite 6
+          hmrEventData.serverOnly = modules.every(
+            (m) => !m.invalidationState && m.ssrInvalidationState
+          );
         }
 
         server.ws.send({
